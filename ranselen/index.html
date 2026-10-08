@@ -1,0 +1,488 @@
+<title>Ranselen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  /* Layout: one column on a squared "ruteark" ground; inbox on top, the week below, grouped by day. */
+  :root{
+    --bg:#F3F5F7;
+    --grid:rgba(40,70,120,.07);
+    --surface:#FFFFFF;
+    --ink:#16233A;
+    --ink-2:#4B5872;
+    --ink-3:#7D879A;
+    --line:#D9DFE8;
+    --accent:#1F4FD1;
+    --accent-ink:#FFFFFF;
+    --marker:#FFE45C;
+    --danger:#B4232A;
+    --ok:#1D7A4C;
+    --src-vigilo:#2E7D6B;
+    --src-skolemelding:#2F5BB8;
+    --src-spond:#C2571A;
+    --src-whatsapp:#3C8B3A;
+    --src-annet:#6B5BA8;
+    --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --body:'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F1522; --grid:rgba(150,180,230,.06); --surface:#182132; --ink:#E7ECF5; --ink-2:#AEB8CB;
+      --ink-3:#7F8AA0; --line:#2A3550; --accent:#7EA2FF; --accent-ink:#0B1222; --marker:#8A7A1E;
+      --danger:#FF8A8F; --ok:#6FD3A1; --src-vigilo:#5EC4AC; --src-skolemelding:#86A9FF; --src-spond:#F49A62;
+      --src-whatsapp:#7FCF7C; --src-annet:#B5A6F2; color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1522; --grid:rgba(150,180,230,.06); --surface:#182132; --ink:#E7ECF5; --ink-2:#AEB8CB;
+    --ink-3:#7F8AA0; --line:#2A3550; --accent:#7EA2FF; --accent-ink:#0B1222; --marker:#8A7A1E;
+    --danger:#FF8A8F; --ok:#6FD3A1; --src-vigilo:#5EC4AC; --src-skolemelding:#86A9FF; --src-spond:#F49A62;
+    --src-whatsapp:#7FCF7C; --src-annet:#B5A6F2; color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background-color:var(--bg);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.5;
+    padding-inline:16px;
+    padding-block:28px 64px;
+  }
+  .wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+  h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+  button,input,textarea,select{font:inherit;color:inherit}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+  .brand h1{font-size:clamp(34px,7vw,48px);font-weight:800;letter-spacing:-.02em;line-height:1}
+  .brand h1 span{background:linear-gradient(transparent 58%,var(--marker) 58%,var(--marker) 92%,transparent 92%);padding-inline:2px}
+  .brand p{margin:6px 0 0;color:var(--ink-2);max-width:52ch}
+  .today{font-size:13px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+
+  /* Inbox */
+  .inbox{display:flex;flex-direction:column;gap:12px}
+  .inbox h2{font-size:20px}
+  .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink-3)}
+  .sources{display:flex;flex-wrap:wrap;gap:8px}
+  .src-btn{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;cursor:pointer;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+  .src-btn .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  .src-btn[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+  textarea{width:100%;min-height:120px;resize:vertical;border:1.5px solid var(--line);border-radius:10px;padding:12px;background:transparent}
+  textarea::placeholder{color:var(--ink-3)}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .grow{flex:1 1 auto}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+  .btn.small{padding:6px 10px;font-size:14px}
+  .linkish{background:none;border:none;padding:0;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .thumbs{display:flex;flex-wrap:wrap;gap:8px}
+  .thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb button{position:absolute;top:2px;right:2px;border:none;border-radius:50%;width:22px;height:22px;background:var(--ink);color:var(--bg);cursor:pointer;line-height:1;font-size:14px}
+  .hint{font-size:14px;color:var(--ink-2)}
+  .status{font-size:14px;color:var(--ink-2);min-height:1.5em}
+  .status.err{color:var(--danger)}
+
+  /* Review list */
+  .review{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:12px}
+  .review-item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+  .review-item input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
+  .dup{font-size:12px;color:var(--danger);font-weight:700}
+
+  /* Filters */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:700;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+  /* Week */
+  .day{display:flex;flex-direction:column;gap:8px}
+  .day-head{display:flex;align-items:baseline;gap:10px}
+  .day-head h3{font-size:18px}
+  .day-head .count{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .day.hot .day-head h3 span{background:linear-gradient(transparent 55%,var(--marker) 55%,var(--marker) 90%,transparent 90%)}
+  .items{display:flex;flex-direction:column;gap:6px;list-style:none;margin:0;padding:0}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
+  .item.done{opacity:.55}
+  .item.done .title{text-decoration:line-through}
+  .check{appearance:none;width:22px;height:22px;border:2px solid var(--ink-3);border-radius:6px;margin-top:2px;cursor:pointer;display:grid;place-content:center}
+  .check:checked{background:var(--ok);border-color:var(--ok)}
+  .check:checked::after{content:"";width:6px;height:11px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .body{min-width:0}
+  .title{font-weight:700;overflow-wrap:anywhere}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:13px;color:var(--ink-2);margin-top:2px;align-items:center}
+  .kind{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;border:1px solid var(--line)}
+  .kind.frist{border-color:var(--danger);color:var(--danger)}
+  .kind.ta-med{background:var(--marker);border-color:transparent;color:var(--ink)}
+  .src{display:inline-flex;align-items:center;gap:5px}
+  .src::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .details{font-size:14px;color:var(--ink-2);margin-top:4px;overflow-wrap:anywhere;white-space:pre-wrap}
+  .del{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:20px;line-height:1;padding:2px 4px}
+  .del:hover{color:var(--danger)}
+  .empty{color:var(--ink-2);text-align:center;padding:28px 12px}
+  .empty strong{display:block;font-family:var(--display);font-size:20px;color:var(--ink);margin-bottom:4px}
+
+  details.settings summary{cursor:pointer;font-weight:700}
+  details.settings .row{margin-top:10px}
+  details.settings input[type=text]{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:transparent;min-width:0;flex:1 1 220px}
+  footer{font-size:13px;color:var(--ink-3);text-align:center}
+  @media (max-width:480px){ .item{grid-template-columns:auto 1fr} .del{grid-column:2;justify-self:end;margin-top:-6px} }
+  @media (prefers-reduced-motion:no-preference){ .item{transition:opacity .2s} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1><span>Ranselen</span></h1>
+      <p>Én liste for alt fra Vigilo, Skolemelding, Spond og foreldrechattene. Lim inn beskjeden, så sorterer Claude ut det du faktisk må gjøre.</p>
+    </div>
+    <div class="today" id="todayLabel"></div>
+  </header>
+
+  <section class="card inbox" aria-labelledby="inboxTitle">
+    <h2 id="inboxTitle">Ny beskjed</h2>
+    <div>
+      <div class="label" id="srcLabel">Hvor kom den fra?</div>
+      <div class="sources" role="group" aria-labelledby="srcLabel" id="sources"></div>
+    </div>
+    <textarea id="msg" placeholder="Lim inn teksten fra Vigilo, Skolemelding, Spond eller en WhatsApp-tråd. Du kan også lime inn eller legge ved skjermbilder."></textarea>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="row">
+      <button class="btn" id="sortBtn">Sorter beskjeden</button>
+      <label class="btn ghost" for="imgInput" id="imgLabel" style="cursor:pointer">Legg ved skjermbilde</label>
+      <input type="file" id="imgInput" accept="image/*" multiple hidden>
+      <span class="grow"></span>
+      <button class="linkish" id="exampleBtn" type="button">Prøv med et eksempel</button>
+    </div>
+    <div class="status" id="status" role="status"></div>
+    <div class="review" id="review" hidden></div>
+  </section>
+
+  <section aria-labelledby="weekTitle" style="display:flex;flex-direction:column;gap:16px">
+    <div class="row">
+      <h2 id="weekTitle" style="font-size:24px" class="grow">Det du må huske</h2>
+      <button class="btn ghost small" id="clearDoneBtn">Fjern utførte</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div id="week" style="display:flex;flex-direction:column;gap:22px"></div>
+  </section>
+
+  <details class="card settings" id="settings">
+    <summary>Barna</summary>
+    <p class="hint">Skriv navnene på barna (og gjerne klasse eller lag), adskilt med komma. Da kan Claude knytte hver beskjed til riktig barn.</p>
+    <div class="row">
+      <input type="text" id="kidsInput" placeholder="F.eks. Ella 3B, Jonas 6A fotball">
+      <button class="btn small" id="saveKids">Lagre</button>
+    </div>
+    <p class="hint" id="storageNote"></p>
+  </details>
+
+  <footer>Ranselen henter ikke data fra appene selv. Du limer inn, Claude sorterer, og listen lagres privat på kontoen din.</footer>
+</div>
+
+<script>
+(() => {
+  const SOURCES = [
+    {id:'vigilo', name:'Vigilo'},
+    {id:'skolemelding', name:'Skolemelding'},
+    {id:'spond', name:'Spond'},
+    {id:'whatsapp', name:'WhatsApp'},
+    {id:'annet', name:'Annet / AKS'},
+  ];
+  const KINDS = {frist:'Frist', 'ta med':'Ta med', arrangement:'Arrangement', beskjed:'Til info'};
+  const WD = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+  const MO = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+  const parseIso = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+  const srcName = id => (SOURCES.find(s => s.id === id) || SOURCES[4]).name;
+  const srcColor = id => `var(--src-${SOURCES.some(s => s.id === id) ? id : 'annet'})`;
+
+  const now = new Date();
+  const TODAY = iso(now), TOMORROW = iso(addDays(now,1));
+  $('todayLabel').textContent = `${WD[now.getDay()]} ${now.getDate()}. ${MO[now.getMonth()]}`;
+
+  // ---------- state ----------
+  let items = {};          // id -> item
+  let kids = [];           // strings
+  let source = 'vigilo';
+  let images = [];         // Blobs
+  let pending = [];        // reviewed suggestions
+  let kidFilter = 'alle';
+  let store = null;
+
+  // ---------- storage: db (private per person) with a local fallback ----------
+  async function makeStore() {
+    let db = null, user = null;
+    try { [db, user] = await Promise.all([claude.use('db'), claude.use('user')]); } catch {}
+    const uid = user ? await user.id().catch(() => null) : null;
+    if (db && uid) {
+      const col = db.collection('data/users/' + uid);
+      $('storageNote').textContent = 'Listen lagres privat på claude.ai-kontoen din og følger deg mellom mobil og PC.';
+      return {
+        listen(cb){ col.onSnapshot(s => cb(s.docs.map(d => ({id:d.id, ...d.data()}))), e => setStatus('Fikk ikke lest listen: ' + e.message, true)); },
+        put(id, data){ return col.doc(id).set(data); },
+        patch(id, data){ return col.doc(id).update(data); },
+        del(id){ return col.doc(id).delete(); },
+      };
+    }
+    $('storageNote').textContent = 'Du er ikke logget inn, så listen lagres bare i denne nettleseren.';
+    const KEY = 'ranselen.v1';
+    let mem = {};
+    try { mem = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch {}
+    let listener = () => {};
+    const flush = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch {} listener(Object.entries(mem).map(([id,v]) => ({id, ...v}))); };
+    return {
+      listen(cb){ listener = cb; flush(); },
+      async put(id, data){ mem[id] = data; flush(); },
+      async patch(id, data){ mem[id] = {...mem[id], ...data}; flush(); },
+      async del(id){ delete mem[id]; flush(); },
+    };
+  }
+
+  // ---------- inbox ----------
+  function renderSources() {
+    $('sources').innerHTML = SOURCES.map(s =>
+      `<button type="button" class="src-btn" style="--c:${srcColor(s.id)}" data-src="${s.id}" aria-pressed="${s.id === source}"><span class="dot"></span>${esc(s.name)}</button>`).join('');
+  }
+  $('sources').addEventListener('click', e => {
+    const b = e.target.closest('[data-src]'); if (!b) return;
+    source = b.dataset.src; renderSources();
+  });
+
+  function renderThumbs() {
+    $('thumbs').innerHTML = images.map((b,i) =>
+      `<div class="thumb"><img alt="Skjermbilde ${i+1}" src="${URL.createObjectURL(b)}"><button type="button" data-rm="${i}" aria-label="Fjern bilde">×</button></div>`).join('');
+  }
+  $('thumbs').addEventListener('click', e => {
+    const b = e.target.closest('[data-rm]'); if (!b) return;
+    images.splice(+b.dataset.rm, 1); renderThumbs();
+  });
+  $('imgInput').addEventListener('change', e => { images.push(...e.target.files); e.target.value = ''; renderThumbs(); });
+  $('msg').addEventListener('paste', e => {
+    const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+    if (files.length) { e.preventDefault(); images.push(...files); renderThumbs(); }
+  });
+
+  const EXAMPLE = {
+    source:'whatsapp',
+    text:`[14:02] Kari (mamma til Sofie): Hei alle! Minner om at 3B har aktivitetsdag på torsdag 🙂
+[14:03] Ola: Takk!
+[14:03] Linn: 👍
+[14:10] Kari (mamma til Sofie): Barna skal ha med matpakke, drikkeflaske og klær etter vær. Vi er ute hele dagen.
+[14:12] Per: Noen som vet om det er gym på fredag likevel?
+[14:15] Kari (mamma til Sofie): Ja, gym som vanlig fredag. Husk gymtøy!
+[14:16] Ola: Supert 🙏
+[14:20] Anne (FAU): Påmelding til foreldremøtet 22. oktober kl 18 må skje i Vigilo innen mandag.`
+  };
+  $('exampleBtn').addEventListener('click', () => {
+    $('msg').value = EXAMPLE.text; source = EXAMPLE.source; renderSources();
+    setStatus('Eksempelet er lagt inn. Trykk «Sorter beskjeden».');
+  });
+
+  function setStatus(t, err) { const s = $('status'); s.textContent = t; s.classList.toggle('err', !!err); }
+
+  function dateContext() {
+    const days = [];
+    for (let i = 0; i < 14; i++) { const d = addDays(now, i); days.push(`${WD[d.getDay()]} ${iso(d)}`); }
+    return days.join(', ');
+  }
+
+  let busy = false;
+  $('sortBtn').addEventListener('click', async () => {
+    if (busy) return;
+    const text = $('msg').value.trim();
+    if (!text && !images.length) { setStatus('Lim inn en beskjed eller legg ved et skjermbilde først.', true); return; }
+    const sample = await claude.use('sample');
+    if (!sample) { setStatus('Claude er ikke tilgjengelig i denne visningen. Åpne siden på claude.ai mens du er logget inn.', true); return; }
+    let canImages = false;
+    try { canImages = !!(await sample.limits()).images; } catch {}
+    if (images.length && !canImages) { setStatus('Skjermbilder kan ikke sendes herfra. Lim inn teksten i stedet.', true); return; }
+
+    busy = true; $('sortBtn').disabled = true; setStatus('Claude leser beskjeden …');
+    const prompt = `Du hjelper en forelder med å holde oversikt over beskjeder fra skole, SFO/AKS og fritidsaktiviteter i Norge.
+I dag er ${WD[now.getDay()]} ${TODAY}. De neste dagene: ${dateContext()}.
+Forelderens barn: ${kids.length ? kids.join('; ') : '(ikke oppgitt)'}.
+Kilde: ${srcName(source)}.${source === 'whatsapp' ? ' Dette er en foreldrechat. Ignorer småprat, takk, emojier, spørsmål uten svar og gjentakelser. Bruk bare det som er bekreftet.' : ''}
+
+Hent ut det forelderen må gjøre, huske eller vite. Slå sammen ting som hører sammen (f.eks. én oppføring for en tur med alt som skal med). Lag ikke oppføringer for ting som allerede er passert.
+Svar KUN med JSON på formen:
+{"items":[{"title":"kort og konkret på norsk, maks 60 tegn, f.eks. «Ta med gymtøy» eller «Meld på foreldremøte i Vigilo»","kind":"frist" | "ta med" | "arrangement" | "beskjed","date":"YYYY-MM-DD eller null","time":"HH:MM eller null","child":"navn fra listen over eller null","details":"det viktigste av resten, maks 200 tegn, eller tom streng"}]}
+For en frist er date fristdatoen. Bruk "ta med" når barnet skal ha med seg noe. Hvis ingenting er relevant, svar {"items":[]}.
+
+Beskjed:
+"""
+${text || '(se skjermbildene)'}
+"""`;
+    try {
+      const res = await sample.json(prompt, images.length ? {images} : undefined);
+      const list = Array.isArray(res?.items) ? res.items : [];
+      pending = list.filter(x => x && x.title).map(x => ({
+        title: String(x.title).slice(0, 90),
+        kind: KINDS[x.kind] ? x.kind : 'beskjed',
+        date: /^\d{4}-\d{2}-\d{2}$/.test(x.date || '') ? x.date : null,
+        time: /^\d{1,2}:\d{2}$/.test(x.time || '') ? x.time : null,
+        child: x.child ? String(x.child).slice(0, 40) : null,
+        details: x.details ? String(x.details).slice(0, 300) : '',
+        source, keep: true,
+      }));
+      pending.forEach(p => p.dup = Object.values(items).some(i => i.title.toLowerCase() === p.title.toLowerCase() && i.date === p.date));
+      pending.forEach(p => { if (p.dup) p.keep = false; });
+      setStatus(pending.length ? `Fant ${pending.length} ting. Fjern haken på det du ikke trenger, og legg resten i listen.` : 'Fant ingenting du trenger å gjøre noe med i denne beskjeden.');
+      renderReview();
+    } catch (e) {
+      const msg = {
+        not_granted:'Du må tillate at siden bruker Claude for å sortere beskjeder.',
+        rate_limited:'Claude har fått mange forespørsler på kort tid. Vent litt og prøv igjen.',
+        prompt_too_large:'Beskjeden er for lang. Del den opp og lim inn én del om gangen.',
+        image_rejected:'Ett av skjermbildene kunne ikke leses. Prøv et annet bilde eller lim inn teksten.',
+        invalid_json:'Claude svarte i feil format. Prøv igjen.',
+      }[e?.code] || 'Noe gikk galt under sorteringen. Prøv igjen.';
+      setStatus(msg, true);
+    } finally { busy = false; $('sortBtn').disabled = false; }
+  });
+
+  function fmtDate(s) {
+    if (!s) return 'uten dato';
+    if (s === TODAY) return 'i dag';
+    if (s === TOMORROW) return 'i morgen';
+    const d = parseIso(s); return `${WD[d.getDay()]} ${d.getDate()}. ${MO[d.getMonth()].slice(0,3)}`;
+  }
+
+  function renderReview() {
+    const box = $('review');
+    if (!pending.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = `<div class="label">Forslag fra Claude</div>` + pending.map((p,i) => `
+      <label class="review-item">
+        <input type="checkbox" data-keep="${i}" ${p.keep ? 'checked' : ''}>
+        <span class="body">
+          <span class="title">${esc(p.title)}</span>
+          <span class="meta"><span class="kind ${p.kind.replace(' ','-')}">${KINDS[p.kind]}</span>${esc(fmtDate(p.date))}${p.time ? ' kl. ' + esc(p.time) : ''}${p.child ? ' · ' + esc(p.child) : ''}${p.dup ? ' <span class="dup">Ligger allerede i listen</span>' : ''}</span>
+          ${p.details ? `<span class="details">${esc(p.details)}</span>` : ''}
+        </span>
+      </label>`).join('') +
+      `<div class="row"><button class="btn" id="addBtn" type="button">Legg i listen</button><button class="btn ghost" id="dropBtn" type="button">Forkast</button></div>`;
+  }
+  $('review').addEventListener('change', e => { const c = e.target.closest('[data-keep]'); if (c) pending[+c.dataset.keep].keep = c.checked; });
+  $('review').addEventListener('click', async e => {
+    if (e.target.id === 'dropBtn') { pending = []; renderReview(); setStatus(''); return; }
+    if (e.target.id !== 'addBtn') return;
+    const keep = pending.filter(p => p.keep);
+    e.target.disabled = true;
+    try {
+      for (const p of keep) {
+        const {keep:_, dup:__, ...data} = p;
+        await store.put('item_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7), {...data, type:'item', done:false, createdAt:new Date().toISOString()});
+      }
+      pending = []; renderReview();
+      $('msg').value = ''; images = []; renderThumbs();
+      setStatus(keep.length ? `La ${keep.length} ting i listen.` : 'Ingenting ble lagt til.');
+    } catch (err) { setStatus('Fikk ikke lagret: ' + (err?.message || 'ukjent feil'), true); e.target.disabled = false; }
+  });
+
+  // ---------- week ----------
+  function renderFilters() {
+    const names = [...new Set(Object.values(items).map(i => i.child).filter(Boolean))];
+    if (kidFilter !== 'alle' && !names.includes(kidFilter)) kidFilter = 'alle';
+    $('filters').innerHTML = names.length < 2 ? '' : ['alle', ...names].map(n =>
+      `<button type="button" class="chip" data-kid="${esc(n)}" aria-pressed="${n === kidFilter}">${n === 'alle' ? 'Alle barn' : esc(n)}</button>`).join('');
+  }
+  $('filters').addEventListener('click', e => { const b = e.target.closest('[data-kid]'); if (!b) return; kidFilter = b.dataset.kid; renderWeek(); });
+
+  function groupOf(i) {
+    if (!i.date) return 'nodate';
+    if (i.date < TODAY) return i.done ? 'hide' : 'late';
+    if (i.date === TODAY) return 'today';
+    if (i.date === TOMORROW) return 'tomorrow';
+    if (i.date <= iso(addDays(now, 7))) return 'week';
+    return 'later';
+  }
+  const GROUPS = [
+    ['late','Har gått ut'], ['today','I dag'], ['tomorrow','I morgen'],
+    ['week','De neste sju dagene'], ['later','Senere'], ['nodate','Til info, uten dato'],
+  ];
+
+  function renderWeek() {
+    renderFilters();
+    const list = Object.values(items).filter(i => kidFilter === 'alle' || i.child === kidFilter);
+    if (!list.length) {
+      $('week').innerHTML = `<div class="card empty"><strong>Ranselen er tom</strong>Lim inn en beskjed over, eller trykk «Prøv med et eksempel» for å se hvordan det fungerer.</div>`;
+      return;
+    }
+    const sortKey = i => `${i.done ? 1 : 0}${i.date || '9'}${i.time || '99:99'}${i.title}`;
+    $('week').innerHTML = GROUPS.map(([g, label]) => {
+      const gi = list.filter(i => groupOf(i) === g).sort((a,b) => sortKey(a) < sortKey(b) ? -1 : 1);
+      if (!gi.length) return '';
+      const open = gi.filter(i => !i.done).length;
+      return `<div class="day ${g === 'today' || g === 'tomorrow' ? 'hot' : ''}">
+        <div class="day-head"><h3><span>${label}</span></h3><span class="count">${open} igjen</span></div>
+        <ul class="items">${gi.map(itemHtml).join('')}</ul></div>`;
+    }).join('');
+  }
+
+  function itemHtml(i) {
+    const showDate = !['today','tomorrow'].includes(groupOf(i)) && i.date;
+    return `<li class="item ${i.done ? 'done' : ''}">
+      <input type="checkbox" class="check" data-done="${esc(i.id)}" ${i.done ? 'checked' : ''} aria-label="Merk «${esc(i.title)}» som gjort">
+      <div class="body">
+        <div class="title">${esc(i.title)}</div>
+        <div class="meta">
+          <span class="kind ${esc((i.kind||'beskjed').replace(' ','-'))}">${KINDS[i.kind] || 'Til info'}</span>
+          ${showDate ? `<span>${esc(fmtDate(i.date))}</span>` : ''}
+          ${i.time ? `<span>kl. ${esc(i.time)}</span>` : ''}
+          ${i.child ? `<span>${esc(i.child)}</span>` : ''}
+          <span class="src" style="--c:${srcColor(i.source)}">${esc(srcName(i.source))}</span>
+        </div>
+        ${i.details ? `<div class="details">${esc(i.details)}</div>` : ''}
+      </div>
+      <button class="del" data-del="${esc(i.id)}" aria-label="Slett «${esc(i.title)}»">×</button>
+    </li>`;
+  }
+
+  $('week').addEventListener('change', e => {
+    const c = e.target.closest('[data-done]'); if (!c) return;
+    store.patch(c.dataset.done, {done: c.checked}).catch(err => setStatus('Fikk ikke lagret: ' + err.message, true));
+  });
+  $('week').addEventListener('click', e => {
+    const b = e.target.closest('[data-del]'); if (!b) return;
+    store.del(b.dataset.del).catch(err => setStatus('Fikk ikke slettet: ' + err.message, true));
+  });
+  $('clearDoneBtn').addEventListener('click', async () => {
+    const done = Object.values(items).filter(i => i.done);
+    for (const i of done) await store.del(i.id).catch(() => {});
+  });
+
+  // ---------- kids ----------
+  $('saveKids').addEventListener('click', async () => {
+    kids = $('kidsInput').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 8);
+    await store.put('settings', {type:'settings', kids}).catch(err => setStatus('Fikk ikke lagret: ' + err.message, true));
+    $('settings').open = false;
+  });
+
+  // ---------- boot ----------
+  renderSources(); renderWeek();
+  $('storageNote').textContent = 'Kobler til …';
+  makeStore().then(s => {
+    store = s;
+    store.listen(docs => {
+      items = {};
+      for (const d of docs) {
+        if (d.type === 'settings') { kids = Array.isArray(d.kids) ? d.kids : []; if (document.activeElement !== $('kidsInput')) $('kidsInput').value = kids.join(', '); }
+        else if (d.type === 'item') items[d.id] = d;
+      }
+      if (!kids.length) $('settings').open = true;
+      renderWeek();
+    });
+  });
+})();
+</script>
